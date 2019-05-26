@@ -26,7 +26,7 @@ class Config:
 
     def __post_init__(self) -> None:
         object.__setattr__(
-            self, "archive_dir", self.config_file.parent.joinpath(self.archive_dir)
+            self, "archive_dir", self.config_file.parent / self.archive_dir
         )
 
 
