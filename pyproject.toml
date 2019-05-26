@@ -1,11 +1,12 @@
 [tool.poetry]
-name = "accounts"
+name = "bean-fetch"
 version = "0.1.0"
 description = ""
 authors = ["David Terry <me@xwvvvvwx.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
+beancount = "^2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
