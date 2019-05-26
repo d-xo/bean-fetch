@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Mapping, Any
+from typing import Mapping, Any, Optional
 from pathlib import Path
 from abc import ABC
 
@@ -11,7 +11,13 @@ class Globals:
 
 
 @dataclass(frozen=True)
+class Tag:
+    venue: str
+    kind: str
+
+
+@dataclass(frozen=True)
 class RawTx:
-    tag: str
-    meta: Mapping[str, str]
+    tag: Tag
     raw: Mapping[str, Any]
+    meta: Optional[Mapping[str, str]] = None

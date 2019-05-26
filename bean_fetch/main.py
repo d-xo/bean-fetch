@@ -33,7 +33,10 @@ def load_config(path: Path) -> Config:
         path.absolute().parent / config["globals"]["archive_dir"]
     )
 
-    return Config(**config)
+    return Config(
+        globals=Globals(**config["globals"]),
+        coinbase=coinbase.Config(**config["coinbase"]),
+    )
 
 
 # --- main ---
@@ -43,7 +46,6 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx] = []
-    raw += coinbase.fetch(config.globals, config.coinbase)
+    raw += coinbase.Fetcher(config.globals, config.coinbase).all()
 
     print(raw)
-    print(config)
