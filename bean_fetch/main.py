@@ -4,7 +4,7 @@ from typing import List, Mapping, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass
 
-import bean_fetch.fetchers.coinbase as coinbase
+from bean_fetch.fetchers.coinbase import Coinbase, CoinbaseConfig
 from bean_fetch.data import RawTx, Globals
 
 
@@ -22,7 +22,7 @@ args = parser.parse_args()
 @dataclass(frozen=True)
 class Config:
     globals: Globals
-    coinbase: coinbase.Config
+    coinbase: CoinbaseConfig
 
 
 def load_config(path: Path) -> Config:
@@ -35,7 +35,7 @@ def load_config(path: Path) -> Config:
 
     return Config(
         globals=Globals(**config["globals"]),
-        coinbase=coinbase.Config(**config["coinbase"]),
+        coinbase=CoinbaseConfig(**config["coinbase"]),
     )
 
 
@@ -46,6 +46,6 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx] = []
-    raw += coinbase.Fetcher.fetch(config.coinbase)
+    raw += Coinbase.fetch(config.coinbase)
 
     print(raw)
