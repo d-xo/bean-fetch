@@ -7,10 +7,17 @@ authors = ["David Terry <me@xwvvvvwx.com>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 beancount = "^2.2"
+click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
+pylint = "^2.3"
+mypy = "^0.701.0"
 
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
+
+
+[tool.poetry.scripts]
+bean-fetch = 'bean_fetch.main:main'
