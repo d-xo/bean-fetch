@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from typing import List, Mapping, Optional
+from typing import List, Mapping, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -20,8 +20,11 @@ class CoinbaseConfig:
 
 @dataclass(frozen=True)
 class Config:
+    # global
     config_file: Path
     archive_dir: Path
+
+    # insitutions
     coinbase: Optional[CoinbaseConfig] = None
 
     def __post_init__(self) -> None:
@@ -34,6 +37,19 @@ def load_config(path: Path) -> Config:
     return Config(config_file=path, **yaml.load(path.read_text(), yaml.Loader))
 
 
+@dataclass(frozen=True)
+class RawTx:
+    tag: str
+    meta: Mapping[str, str]
+    raw: Mapping[str, Any]
+
+
 def main() -> None:
     config = load_config(Path(args.config))
-    print(config)
+
+    raw: List[RawTx] = []
+
+    if config.coinbase:
+        raw += coinbase.fetch(config.coinbase)
+
+    print(raw)
