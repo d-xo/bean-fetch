@@ -4,18 +4,12 @@ from typing import List, Mapping, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass
 
+from bean_fetch.fetchers import coinbase
+from bean_fetch.data import RawTx
 
 parser = argparse.ArgumentParser(description="Fully automated command line bookkeeping")
 parser.add_argument("-c", "--config", required=True, help="configuration file path")
 args = parser.parse_args()
-
-
-@dataclass(frozen=True)
-class CoinbaseConfig:
-    api_key: str
-    api_secret: str
-    account_prefix: str
-    payment_methods: List[Mapping[str, str]]
 
 
 @dataclass(frozen=True)
@@ -25,7 +19,7 @@ class Config:
     archive_dir: Path
 
     # insitutions
-    coinbase: Optional[CoinbaseConfig] = None
+    coinbase: Optional[coinbase.Config] = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -35,13 +29,6 @@ class Config:
 
 def load_config(path: Path) -> Config:
     return Config(config_file=path, **yaml.load(path.read_text(), yaml.Loader))
-
-
-@dataclass(frozen=True)
-class RawTx:
-    tag: str
-    meta: Mapping[str, str]
-    raw: Mapping[str, Any]
 
 
 def main() -> None:

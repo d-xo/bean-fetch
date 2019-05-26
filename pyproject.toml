@@ -11,6 +11,7 @@ bean-fetch = 'bean_fetch.main:main'
 python = "^3.7"
 beancount = "^2.2"
 pyyaml = "^5.1"
+coinbase = "^2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
