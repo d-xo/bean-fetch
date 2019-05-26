@@ -3,7 +3,7 @@ import argparse
 from pathlib import Path
 
 parser = argparse.ArgumentParser(description="Fully automated command line bookkeeping")
-parser.add_argument("-c", "--config", help="configuration file path")
+parser.add_argument("-c", "--config", required=True, help="configuration file path")
 args = parser.parse_args()
 
 
