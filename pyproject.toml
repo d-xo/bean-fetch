@@ -17,6 +17,7 @@ coinbase = "^2.1"
 pytest = "^3.0"
 pylint = "^2.3"
 mypy = "^0.701.0"
+rope = "^0.14.0"
 
 [build-system]
 requires = ["poetry>=0.12"]

@@ -46,6 +46,6 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx] = []
-    raw += coinbase.Fetcher(config.globals, config.coinbase).all()
+    raw += coinbase.Fetcher.fetch(config.coinbase)
 
     print(raw)

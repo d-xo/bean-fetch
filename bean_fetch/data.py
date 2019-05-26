@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Mapping, Any, Optional
 from pathlib import Path
-from abc import ABC
+from enum import Enum
 
 
 @dataclass(frozen=True)
@@ -13,7 +13,7 @@ class Globals:
 @dataclass(frozen=True)
 class Tag:
     venue: str
-    kind: str
+    kind: Enum
 
 
 @dataclass(frozen=True)
