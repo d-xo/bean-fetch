@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from typing import List, Mapping
+from typing import List, Mapping, Optional
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -10,7 +10,7 @@ parser.add_argument("-c", "--config", required=True, help="configuration file pa
 args = parser.parse_args()
 
 
-@dataclass
+@dataclass(frozen=True)
 class CoinbaseConfig:
     api_key: str
     api_secret: str
@@ -18,14 +18,22 @@ class CoinbaseConfig:
     payment_methods: List[Mapping[str, str]]
 
 
-@dataclass
+@dataclass(frozen=True)
 class Config:
-    coinbase: CoinbaseConfig
+    config_file: Path
+    archive_dir: Path
+    coinbase: Optional[CoinbaseConfig] = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "archive_dir", self.config_file.parent.joinpath(self.archive_dir)
+        )
 
 
 def load_config(path: Path) -> Config:
-    return Config(**yaml.load(path.read_text(), yaml.Loader))
+    return Config(config_file=path, **yaml.load(path.read_text(), yaml.Loader))
 
 
 def main() -> None:
-    load_config(Path(args.config))
+    config = load_config(Path(args.config))
+    print(config)

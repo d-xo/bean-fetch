@@ -1,6 +1,8 @@
 # bean-fetch
 
-`bean-fetch` is a tool that fetches raw transaction data from various financial institutions and transforms it into a single consistent beancount ledger.
+`bean-fetch` is a tool that fetches raw transaction data from various
+financial institutions and transforms it into a single consistent beancount
+ledger (including prices / cost basis when required).
 
 ## Usage
 
