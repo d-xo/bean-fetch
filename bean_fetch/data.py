@@ -1,42 +1,34 @@
 from dataclasses import dataclass
-from typing import Mapping, Any, Optional, List, TypeVar, Generic, Type
+from typing import Mapping, Any, Optional, List, TypeVar, Generic, Type, Dict
 from pathlib import Path
 from enum import Enum
 from abc import ABC
+
+import yaml
 from beancount.core.data import Transaction
 
 
 @dataclass(frozen=True)
-class Globals:
-    archive_dir: Path
-    base_currency: str
-
-
-@dataclass(frozen=True)
-class Tag:
+class RawTx:
     venue: str
     kind: Enum
-
-
-@dataclass(frozen=True)
-class RawTx:
-    tag: Tag
-    raw: Mapping[str, Any]
+    timestamp: str
+    raw: Dict[str, Any]
     meta: Optional[Mapping[str, str]] = None
 
 
-Config = TypeVar("Config")
+C = TypeVar("C")
 
 
-class Venue(Generic[Config], ABC):
+class VenueLike(Generic[C], ABC):
     @staticmethod
-    def fetch(config: Config) -> List[RawTx]:
+    def fetch(config: C) -> List[RawTx]:
         ...
 
     @staticmethod
-    def handles(tag: Tag) -> bool:
+    def handles(tx: RawTx) -> bool:
         ...
 
     @staticmethod
-    def parse(config: Config, tx: RawTx) -> Transaction:
+    def parse(config: C, tx: RawTx) -> Transaction:
         ...

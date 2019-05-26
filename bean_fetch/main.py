@@ -1,11 +1,14 @@
-import yaml
+import json
+import hashlib
 import argparse
-from typing import List, Mapping, Optional, Any
 from pathlib import Path
 from dataclasses import dataclass
+from typing import List, Mapping, Optional, Any
 
-from bean_fetch.fetchers.coinbase import Coinbase, CoinbaseConfig
-from bean_fetch.data import RawTx, Globals
+import yaml
+
+from bean_fetch.data import RawTx
+import bean_fetch.fetchers.coinbase as coinbase
 
 
 # --- cli ---
@@ -21,22 +24,25 @@ args = parser.parse_args()
 
 @dataclass(frozen=True)
 class Config:
-    globals: Globals
-    coinbase: CoinbaseConfig
+    archive_dir: Path
+    coinbase: coinbase.Config
 
 
 def load_config(path: Path) -> Config:
     config = yaml.load(path.read_text(), yaml.Loader)
-
-    # make relative paths absolute
-    config["globals"]["archive_dir"] = (
-        path.absolute().parent / config["globals"]["archive_dir"]
-    )
-
     return Config(
-        globals=Globals(**config["globals"]),
-        coinbase=CoinbaseConfig(**config["coinbase"]),
+        archive_dir=path.absolute().parent / config["archive_dir"],
+        coinbase=coinbase.Config(**config["coinbase"]),
     )
+
+
+# --- archives ---
+
+
+def archive(root: Path, tx: RawTx) -> None:
+    content_hash = hashlib.sha256(json.dumps(tx.__dict__).encode("utf-8")).hexdigest()
+    file = root / f"{tx.venue}-{tx.kind}-{tx.timestamp}-{content_hash}.json"
+    file.write_text(json.dumps(tx.__dict__))
 
 
 # --- main ---
@@ -46,6 +52,9 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx] = []
-    raw += Coinbase.fetch(config.coinbase)
+    raw += coinbase.Venue.fetch(config.coinbase)
 
-    print(raw)
+    for tx in raw:
+        archive(config.archive_dir, tx)
+
+    # print(raw)

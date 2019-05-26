@@ -1,14 +1,16 @@
 from dataclasses import dataclass, field
-from typing import List, Mapping, Optional, Iterable, Tuple, Callable, Any, Type
+from typing import List, Mapping, Optional, Iterable, Tuple, Callable, Any, Type, cast
 from itertools import chain
 from enum import Enum
+from pathlib import Path
 import json
 
+import yaml
 from beancount.core.data import Transaction
 from coinbase.wallet.client import Client
 import coinbase.wallet.model as cb
 
-from bean_fetch.data import RawTx, Globals, Tag, Venue
+from bean_fetch.data import RawTx, VenueLike
 
 
 # --- constants ---
@@ -17,7 +19,7 @@ from bean_fetch.data import RawTx, Globals, Tag, Venue
 VENUE = "coinbase"
 
 
-class Kind(Enum):
+class Kind(str, Enum):
     BUY = "buy"
     SELL = "sell"
     DEPOSIT = "deposit"
@@ -28,7 +30,7 @@ class Kind(Enum):
 
 
 @dataclass(frozen=True)
-class CoinbaseConfig:
+class Config:
     api_key: str
     api_secret: str
     assets_prefix: str
@@ -39,9 +41,9 @@ class CoinbaseConfig:
 # --- venue ---
 
 
-class Coinbase(Venue[CoinbaseConfig]):
+class Venue(VenueLike[Config]):
     @staticmethod
-    def fetch(config: CoinbaseConfig) -> List[RawTx]:
+    def fetch(config: Config) -> List[RawTx]:
         client = Client(config.api_key, config.api_secret)
         accounts = client.get_accounts().data
 
@@ -53,12 +55,12 @@ class Coinbase(Venue[CoinbaseConfig]):
         )
 
     @staticmethod
-    def handles(tag: Tag) -> bool:
-        return tag.venue == VENUE and tag.kind is Kind
+    def handles(tx: RawTx) -> bool:
+        return tx.venue == VENUE and isinstance(tx.kind, Kind)
 
     @staticmethod
-    def parse(config: CoinbaseConfig, tx: RawTx) -> Transaction:
-        assert tx.tag.venue == VENUE, "unknown venue"
+    def parse(config: Config, tx: RawTx) -> Transaction:
+        assert Venue.handles(tx), "unknown tx kind"
 
         dispatcher = {
             Kind.BUY: Parse.buy,
@@ -67,8 +69,7 @@ class Coinbase(Venue[CoinbaseConfig]):
             Kind.WITHDRAWAL: Parse.withdrawal,
         }
 
-        kind = Kind(tx.tag)
-        return dispatcher[kind](tx)
+        return dispatcher[cast(Kind, tx.kind)](tx)
 
 
 # --- fetcher ---
@@ -111,9 +112,11 @@ class Fetch:
         for obj in objs:
             txs.append(
                 RawTx(
-                    tag=Tag(venue=VENUE, kind=kind),
+                    venue=VENUE,
+                    kind=kind,
+                    timestamp=obj.created_at,
                     meta={"account_id": acct.id},
-                    raw=json.loads(str(obj)),
+                    raw=str(obj),
                 )
             )
         return txs
