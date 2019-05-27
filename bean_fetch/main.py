@@ -40,9 +40,9 @@ def load_config(path: Path) -> Config:
 
 
 def archive(root: Path, tx: RawTx) -> None:
-    content_hash = hashlib.sha256(json.dumps(tx.__dict__).encode("utf-8")).hexdigest()
+    content_hash = hashlib.sha256(json.dumps(tx.raw).encode("utf-8")).hexdigest()
     file = root / f"{tx.venue}-{tx.kind}-{tx.timestamp}-{content_hash}.json"
-    file.write_text(json.dumps(tx.__dict__))
+    file.write_text(json.dumps(tx.__dict__, indent=4))
 
 
 # --- main ---
@@ -56,5 +56,3 @@ def main() -> None:
 
     for tx in raw:
         archive(config.archive_dir, tx)
-
-    # print(raw)

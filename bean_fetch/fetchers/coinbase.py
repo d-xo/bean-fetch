@@ -60,7 +60,7 @@ class Venue(VenueLike[Config]):
 
     @staticmethod
     def parse(config: Config, tx: RawTx) -> Transaction:
-        assert Venue.handles(tx), "unknown tx kind"
+        assert Venue.handles(tx), "unparseable tx"
 
         dispatcher = {
             Kind.BUY: Parse.buy,
@@ -116,7 +116,7 @@ class Fetch:
                     kind=kind,
                     timestamp=obj.created_at,
                     meta={"account_id": acct.id},
-                    raw=str(obj),
+                    raw=json.loads(str(obj)),
                 )
             )
         return txs
