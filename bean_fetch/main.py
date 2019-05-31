@@ -9,6 +9,7 @@ import yaml
 
 from bean_fetch.data import RawTx
 import bean_fetch.fetchers.coinbase as coinbase
+import bean_fetch.fetchers.coinbasepro as coinbasepro
 
 
 # --- cli ---
@@ -26,6 +27,7 @@ args = parser.parse_args()
 class Config:
     archive_dir: Path
     coinbase: coinbase.Config
+    coinbasepro: coinbasepro.Config
 
 
 def load_config(path: Path) -> Config:
@@ -33,6 +35,7 @@ def load_config(path: Path) -> Config:
     return Config(
         archive_dir=path.absolute().parent / config["archive_dir"],
         coinbase=coinbase.Config(**config["coinbase"]),
+        coinbasepro=coinbasepro.Config(**config["coinbasepro"]),
     )
 
 
@@ -52,7 +55,8 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx] = []
-    raw += coinbase.Venue.fetch(config.coinbase)
+    # raw += coinbase.Venue.fetch(config.coinbase)
+    raw += coinbasepro.Venue.fetch(config.coinbasepro)
 
     for tx in raw:
         archive(config.archive_dir, tx)
