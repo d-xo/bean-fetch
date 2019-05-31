@@ -40,10 +40,12 @@ class Config:
 
 # --- venue ---
 
+Raw = RawTx[Kind]
 
-class Venue(VenueLike[Config]):
+
+class Venue(VenueLike[Config, Kind]):
     @staticmethod
-    def fetch(config: Config) -> List[RawTx]:
+    def fetch(config: Config) -> List[Raw]:
         client = Client(config.api_key, config.api_secret)
         accounts = client.get_accounts().data
 
@@ -55,11 +57,11 @@ class Venue(VenueLike[Config]):
         )
 
     @staticmethod
-    def handles(tx: RawTx) -> bool:
+    def handles(tx: Raw) -> bool:
         return tx.venue == VENUE and isinstance(tx.kind, Kind)
 
     @staticmethod
-    def parse(config: Config, tx: RawTx) -> Transaction:
+    def parse(config: Config, tx: Raw) -> Transaction:
         assert Venue.handles(tx), "unparseable tx"
 
         dispatcher = {
@@ -77,37 +79,35 @@ class Venue(VenueLike[Config]):
 
 class Fetch:
     @staticmethod
-    def buys(accounts: List[cb.Account]) -> List[RawTx]:
-        out: List[RawTx] = []
+    def buys(accounts: List[cb.Account]) -> List[Raw]:
+        out: List[Raw] = []
         for acct in accounts:
             out += Fetch.transform(acct.get_buys().data, acct, Kind.BUY)
         return out
 
     @staticmethod
-    def sells(accounts: List[cb.Account]) -> List[RawTx]:
-        out: List[RawTx] = []
+    def sells(accounts: List[cb.Account]) -> List[Raw]:
+        out: List[Raw] = []
         for acct in accounts:
             out += Fetch.transform(acct.get_sells().data, acct, Kind.SELL)
         return out
 
     @staticmethod
-    def deposits(accounts: List[cb.Account]) -> List[RawTx]:
-        out: List[RawTx] = []
+    def deposits(accounts: List[cb.Account]) -> List[Raw]:
+        out: List[Raw] = []
         for acct in accounts:
             out += Fetch.transform(acct.get_deposits().data, acct, Kind.DEPOSIT)
         return out
 
     @staticmethod
-    def withdrawals(accounts: List[cb.Account]) -> List[RawTx]:
-        out: List[RawTx] = []
+    def withdrawals(accounts: List[cb.Account]) -> List[Raw]:
+        out: List[Raw] = []
         for acct in accounts:
             out += Fetch.transform(acct.get_withdrawals().data, acct, Kind.WITHDRAWAL)
         return out
 
     @staticmethod
-    def transform(
-        objs: List[cb.APIObject], acct: cb.Account, kind: Kind
-    ) -> List[RawTx]:
+    def transform(objs: List[cb.APIObject], acct: cb.Account, kind: Kind) -> List[Raw]:
         txs = []
         for obj in objs:
             txs.append(
@@ -127,17 +127,17 @@ class Fetch:
 
 class Parse:
     @staticmethod
-    def buy(tx: RawTx) -> Transaction:
+    def buy(tx: Raw) -> Transaction:
         pass
 
     @staticmethod
-    def sell(tx: RawTx) -> Transaction:
+    def sell(tx: Raw) -> Transaction:
         pass
 
     @staticmethod
-    def deposit(tx: RawTx) -> Transaction:
+    def deposit(tx: Raw) -> Transaction:
         pass
 
     @staticmethod
-    def withdrawal(tx: RawTx) -> Transaction:
+    def withdrawal(tx: Raw) -> Transaction:
         pass

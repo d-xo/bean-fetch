@@ -46,7 +46,7 @@ def load_config(path: Path) -> Config:
 def archive(root: Path, tx: RawTx[Any]) -> None:
     content_hash = hashlib.sha256(json.dumps(tx.raw).encode("utf-8")).hexdigest()
     file = root / f"{tx.venue}-{tx.kind}-{tx.timestamp}-{content_hash}.json"
-    file.write_text(json.dumps(vars(tx), indent=4))
+    file.write_text(json.dumps(tx.__dict__, indent=4))
 
 
 # --- main ---
