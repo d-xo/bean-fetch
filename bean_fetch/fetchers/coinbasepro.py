@@ -5,22 +5,12 @@ from dataclasses import dataclass, field
 from typing import List, Mapping, Iterator
 from datetime import datetime
 
+from pydantic.dataclasses import dataclass
 from beancount.core.data import Transaction
 from beancount.core.amount import Decimal
 from cbpro import AuthenticatedClient as Client
 
 from bean_fetch.data import RawTx, VenueLike
-
-# --- constants ---
-
-
-VENUE = "coinbasepro"
-
-
-class Kind(str, Enum):
-    FILL = "fill"
-    DEPOSIT = "deposit"
-    WITHDRAWAL = "withdrawal"
 
 
 # --- config ---
@@ -33,10 +23,43 @@ class Config:
     api_passphrase: str
     assets_prefix: str
     expenses_prefix: str
-    payment_methods: List[Mapping[str, str]]
+    payment_methods: Mapping[str, str]
 
 
-# --- data ---
+# --- dispatch ---
+
+
+VENUE = "coinbasepro"
+
+
+class Kind(str, Enum):
+    FILL = "fill"
+    DEPOSIT = "deposit"
+    WITHDRAWAL = "withdrawal"
+
+
+# --- venue ---
+
+Raw = RawTx[Kind]
+
+
+class Venue(VenueLike[Config, Kind]):
+    @staticmethod
+    def fetch(config: Config) -> List[Raw]:
+        client = Client(config.api_key, config.api_secret, config.api_passphrase)
+        products = [Product(**p) for p in client.get_products()]
+        return Fetch.fills(client, products)
+
+    @staticmethod
+    def handles(tx: Raw) -> bool:
+        return tx.venue == VENUE and isinstance(tx.kind, Kind)
+
+    @staticmethod
+    def parse(config: Config, tx: Raw) -> Transaction:
+        pass
+
+
+# --- api data ---
 
 
 @dataclass(frozen=True)
@@ -63,12 +86,6 @@ class Product:
 
 
 @dataclass(frozen=True)
-class Pair:
-    base: str
-    quote: str
-
-
-@dataclass(frozen=True)
 class Fill:
     """https://docs.pro.coinbase.com/#fills"""
 
@@ -87,58 +104,32 @@ class Fill:
     settled: bool
     usd_volume: str
 
-    # computed
-    pair: Pair = field(init=False)
-
-    def __post_init__(self) -> None:
-        sides = self.product_id.split("-")
-        object.__setattr__(self, "pair", Pair(base=sides[0], quote=sides[1]))
-
-
-# --- venue ---
-
-
-class Venue(VenueLike[Config]):
-    @staticmethod
-    def fetch(config: Config) -> List[RawTx]:
-        client = Client(config.api_key, config.api_secret, config.api_passphrase)
-        products = [Product(**p) for p in client.get_products()]
-        return Fetch.fills(client, products)
-
-    @staticmethod
-    def handles(tx: RawTx) -> bool:
-        return tx.venue == VENUE and isinstance(tx.kind, Kind)
-
-    @staticmethod
-    def parse(config: Config, tx: RawTx) -> Transaction:
-        pass
-
 
 # --- fetcher ---
 
 
 class Fetch:
     @staticmethod
-    def fills(client: Client, products: List[Product]) -> List[RawTx]:
-        out: List[RawTx] = []
+    def fills(client: Client, products: List[Product]) -> List[Raw]:
+        out: List[Raw] = []
         for p in products:
             fs = [Fill(**f) for f in client.get_fills(product_id=p.id)]
             out += [
-                RawTx(
+                Raw(
                     venue=VENUE,
                     kind=Kind.FILL,
                     timestamp=str(f.created_at),
                     meta=None,
-                    raw=json.loads(jsonpickle.encode(f)),
+                    raw=jsonpickle.encode(f, unpicklable=False),
                 )
                 for f in fs
             ]
         return out
 
     @staticmethod
-    def deposits(accounts: List[str]) -> List[RawTx]:
+    def transfers(accounts: List[str]) -> List[Raw]:
         pass
 
     @staticmethod
-    def withdrawals(accounts: List[str]) -> List[RawTx]:
+    def withdrawals(accounts: List[str]) -> List[Raw]:
         pass

@@ -32,6 +32,7 @@ class Config:
 
 def load_config(path: Path) -> Config:
     config = yaml.load(path.read_text(), yaml.Loader)
+    print(config["coinbasepro"])
     return Config(
         archive_dir=path.absolute().parent / config["archive_dir"],
         coinbase=coinbase.Config(**config["coinbase"]),
@@ -42,10 +43,10 @@ def load_config(path: Path) -> Config:
 # --- archives ---
 
 
-def archive(root: Path, tx: RawTx) -> None:
+def archive(root: Path, tx: RawTx[Any]) -> None:
     content_hash = hashlib.sha256(json.dumps(tx.raw).encode("utf-8")).hexdigest()
     file = root / f"{tx.venue}-{tx.kind}-{tx.timestamp}-{content_hash}.json"
-    file.write_text(json.dumps(tx.__dict__, indent=4))
+    file.write_text(json.dumps(vars(tx), indent=4))
 
 
 # --- main ---
@@ -54,7 +55,7 @@ def archive(root: Path, tx: RawTx) -> None:
 def main() -> None:
     config = load_config(Path(args.config))
 
-    raw: List[RawTx] = []
+    raw: List[RawTx[Any]] = []
     # raw += coinbase.Venue.fetch(config.coinbase)
     raw += coinbasepro.Venue.fetch(config.coinbasepro)
 

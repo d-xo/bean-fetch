@@ -5,30 +5,34 @@ from enum import Enum
 from abc import ABC
 
 import yaml
+from pydantic import Json
+from pydantic.dataclasses import dataclass
 from beancount.core.data import Transaction
+
+Kind = TypeVar("Kind")
 
 
 @dataclass(frozen=True)
-class RawTx:
+class RawTx(Generic[Kind]):
     venue: str
-    kind: Enum
+    kind: Kind
     timestamp: str
-    raw: Dict[str, Any]
+    raw: Json
     meta: Optional[Mapping[str, str]] = None
 
 
-C = TypeVar("C")
+Config = TypeVar("Config")
 
 
-class VenueLike(Generic[C], ABC):
+class VenueLike(Generic[Config, Kind], ABC):
     @staticmethod
-    def fetch(config: C) -> List[RawTx]:
+    def fetch(config: Config) -> List[RawTx[Kind]]:
         ...
 
     @staticmethod
-    def handles(tx: RawTx) -> bool:
+    def handles(tx: RawTx[Kind]) -> bool:
         ...
 
     @staticmethod
-    def parse(config: C, tx: RawTx) -> Transaction:
+    def parse(config: Config, tx: RawTx[Kind]) -> Transaction:
         ...

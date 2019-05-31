@@ -14,6 +14,7 @@ pyyaml = "^5.1"
 coinbase = "^2.1"
 cbpro = "^1.1"
 jsonpickle = "^1.2"
+pydantic = "^0.27.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"
