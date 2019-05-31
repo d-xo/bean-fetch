@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import List, Mapping, Optional, Iterable, Tuple, Callable, Any, Type, cast
 from itertools import chain
 from enum import Enum
@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 
 import yaml
+from pydantic.dataclasses import dataclass
 from beancount.core.data import Transaction
 from coinbase.wallet.client import Client
 import coinbase.wallet.model as cb
@@ -35,7 +36,7 @@ class Config:
     api_secret: str
     assets_prefix: str
     expenses_prefix: str
-    payment_methods: List[Mapping[str, str]]
+    payment_methods: Mapping[str, str]
 
 
 # --- venue ---
