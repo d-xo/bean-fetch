@@ -1,15 +1,17 @@
 import json
 import hashlib
 import argparse
+from enum import Enum
 from pathlib import Path
 from typing import List, Mapping, Optional, Any, Dict
 
 import yaml
 import jsonpickle
 from pydantic.dataclasses import dataclass
+from pydantic import Json
 from bean_fetch.data import RawTx
-import bean_fetch.fetchers.coinbase as coinbase
-import bean_fetch.fetchers.coinbasepro as coinbasepro
+import bean_fetch.fetchers.coinbase as cb
+import bean_fetch.fetchers.coinbasepro as cbpro
 
 
 # --- cli ---
@@ -26,16 +28,16 @@ args = parser.parse_args()
 @dataclass(frozen=True)
 class Config:
     archive_dir: Path
-    coinbase: coinbase.Config
-    coinbasepro: coinbasepro.Config
+    coinbase: cb.Config
+    coinbasepro: cbpro.Config
 
 
 def load_config(path: Path) -> Config:
     config = yaml.load(path.read_text(), yaml.Loader)
     return Config(
         archive_dir=path.absolute().parent / config["archive_dir"],
-        coinbase=coinbase.Config(**config["coinbase"]),
-        coinbasepro=coinbasepro.Config(**config["coinbasepro"]),
+        coinbase=cb.Config(**config["coinbase"]),
+        coinbasepro=cbpro.Config(**config["coinbasepro"]),
     )
 
 
@@ -51,21 +53,26 @@ def clean(d: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def dump(tx: RawTx[Any]) -> str:
-    """returns a pretty printed json representation of `tx`"""
-    obj = json.loads(jsonpickle.encode(tx, unpicklable=False))
-    obj["kind"] = obj["kind"]["_name_"]
+def jdumps(obj: Any) -> str:
+    """json.dumps wrapper"""
     return json.dumps(clean(obj), indent=4, ensure_ascii=False, sort_keys=True)
 
 
-def soul(tx: RawTx[Any]) -> str:
+def dump(tx: RawTx[Enum]) -> str:
+    """returns a pretty printed json representation of `tx`"""
+    obj = json.loads(jsonpickle.encode(tx, unpicklable=False))
+    obj["kind"] = tx.kind._name_
+    return jdumps(clean(obj))
+
+
+def soul(tx: RawTx[Enum]) -> str:
     """returns the sha256 hash of `tx`"""
     return hashlib.sha256(dump(tx).encode("utf-8")).hexdigest()
 
 
-def archive(path: Path, tx: RawTx[Any]) -> None:
+def archive(path: Path, tx: RawTx[Enum]) -> None:
     """writes `tx` to `dir`. includes the sha256 hash of the contents in the filename"""
-    assert path.is_dir(), f"{path} is not a directory"
+    path.mkdir(parents=True, exist_ok=True)
     (path / f"{tx.venue}-{tx.kind}-{tx.timestamp}-{soul(tx)}.json").write_text(dump(tx))
 
 
@@ -76,8 +83,8 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx[Any]] = []
-    # raw += coinbase.Venue.fetch(config.coinbase)
-    raw += coinbasepro.Venue.fetch(config.coinbasepro)
+    raw += cb.Venue.fetch(config.coinbase)
+    raw += cbpro.Venue.fetch(config.coinbasepro)
 
     for tx in raw:
         archive(config.archive_dir, tx)

@@ -6,6 +6,7 @@ from pathlib import Path
 import json
 
 import yaml
+import jsonpickle
 from pydantic.dataclasses import dataclass
 from beancount.core.data import Transaction
 from coinbase.wallet.client import Client
@@ -72,7 +73,7 @@ class Venue(VenueLike[Config, Kind]):
             Kind.WITHDRAWAL: Parse.withdrawal,
         }
 
-        return dispatcher[cast(Kind, tx.kind)](tx)
+        return dispatcher[tx.kind](tx)
 
 
 # --- fetcher ---
@@ -112,12 +113,12 @@ class Fetch:
         txs = []
         for obj in objs:
             txs.append(
-                RawTx(
+                Raw(
                     venue=VENUE,
                     kind=kind,
                     timestamp=obj.created_at,
                     meta={"account_id": acct.id},
-                    raw=json.loads(str(obj)),
+                    raw=jsonpickle.encode(obj, unpicklable=False),
                 )
             )
         return txs
