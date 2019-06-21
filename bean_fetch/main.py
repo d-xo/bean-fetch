@@ -62,11 +62,11 @@ def dump(tx: RawTx[Enum]) -> str:
     """returns a pretty printed json representation of `tx`"""
     obj = json.loads(jsonpickle.encode(tx, unpicklable=False))
     obj["kind"] = tx.kind._name_
-    return jdumps(clean(obj))
+    return jdumps(obj)
 
 
 def soul(tx: RawTx[Enum]) -> str:
-    """returns the sha256 hash of `tx`"""
+    """returns the sha256 hash of the serialized representation of `tx`"""
     return hashlib.sha256(dump(tx).encode("utf-8")).hexdigest()
 
 
