@@ -10,8 +10,8 @@ import jsonpickle
 from pydantic.dataclasses import dataclass
 from pydantic import Json
 from bean_fetch.data import RawTx
-import bean_fetch.fetchers.coinbase as cb
-import bean_fetch.fetchers.coinbasepro as cbpro
+import bean_fetch.venues.coinbase as cb
+import bean_fetch.venues.coinbasepro as cbpro
 
 
 # --- cli ---
