@@ -1,6 +1,7 @@
 import json
 import hashlib
 import argparse
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Mapping, Optional, Any, Dict
@@ -53,16 +54,11 @@ def clean(d: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def jdumps(obj: Any) -> str:
-    """json.dumps wrapper"""
-    return json.dumps(clean(obj), indent=4, ensure_ascii=False, sort_keys=True)
-
-
 def dump(tx: RawTx[Enum]) -> str:
     """returns a pretty printed json representation of `tx`"""
     obj = json.loads(jsonpickle.encode(tx, unpicklable=False))
     obj["kind"] = tx.kind._name_
-    return jdumps(obj)
+    return json.dumps(clean(obj), indent=4, ensure_ascii=False, sort_keys=True)
 
 
 def soul(tx: RawTx[Enum]) -> str:
