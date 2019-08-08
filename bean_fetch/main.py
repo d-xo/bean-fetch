@@ -13,7 +13,7 @@ from pydantic import Json
 from bean_fetch.data import RawTx
 
 import bean_fetch.venues.coinbase as cb
-import bean_fetch.venues.coinbasepro as cbpro
+import bean_fetch.venues.coinbasepro.venue as cbpro
 import bean_fetch.venues.ethereum as eth
 
 
@@ -84,8 +84,8 @@ def main() -> None:
 
     raw: List[RawTx[Any]] = []
     # raw += cb.Venue.fetch(config.coinbase)
-    # raw += cbpro.Venue.fetch(config.coinbasepro)
-    raw += eth.Venue.fetch(config.ethereum)
+    raw += cbpro.Venue.fetch(config.coinbasepro)
+    # raw += eth.Venue.fetch(config.ethereum)
     print(raw)
 
     # for tx in raw:
