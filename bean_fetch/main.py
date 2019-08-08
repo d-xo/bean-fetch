@@ -11,8 +11,10 @@ import jsonpickle
 from pydantic.dataclasses import dataclass
 from pydantic import Json
 from bean_fetch.data import RawTx
+
 import bean_fetch.venues.coinbase as cb
 import bean_fetch.venues.coinbasepro as cbpro
+import bean_fetch.venues.ethereum as eth
 
 
 # --- cli ---
@@ -31,6 +33,7 @@ class Config:
     archive_dir: Path
     coinbase: cb.Config
     coinbasepro: cbpro.Config
+    ethereum: eth.Config
 
 
 def load_config(path: Path) -> Config:
@@ -39,6 +42,7 @@ def load_config(path: Path) -> Config:
         archive_dir=path.absolute().parent / config["archive_dir"],
         coinbase=cb.Config(**config["coinbase"]),
         coinbasepro=cbpro.Config(**config["coinbasepro"]),
+        ethereum=eth.Config(**config["ethereum"]),
     )
 
 
@@ -79,8 +83,10 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx[Any]] = []
-    raw += cb.Venue.fetch(config.coinbase)
-    raw += cbpro.Venue.fetch(config.coinbasepro)
+    # raw += cb.Venue.fetch(config.coinbase)
+    # raw += cbpro.Venue.fetch(config.coinbasepro)
+    raw += eth.Venue.fetch(config.ethereum)
+    print(raw)
 
-    for tx in raw:
-        archive(config.archive_dir, tx)
+    # for tx in raw:
+    #     archive(config.archive_dir, tx)
