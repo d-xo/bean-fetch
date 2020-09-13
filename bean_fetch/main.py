@@ -1,15 +1,13 @@
 import json
 import hashlib
 import argparse
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import List, Mapping, Optional, Any, Dict
+from typing import List, Any, Dict
 
 import yaml
 import jsonpickle
 from pydantic.dataclasses import dataclass
-from pydantic import Json
 from bean_fetch.data import RawTx
 
 import bean_fetch.venues.coinbase as cb

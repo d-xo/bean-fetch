@@ -1,6 +1,5 @@
 from enum import Enum
 from datetime import datetime
-from typing import List, Mapping, Iterator, Any
 
 from pydantic.dataclasses import dataclass
 from beancount.core.amount import Decimal
@@ -13,10 +12,6 @@ class Config:
     api_key: str
     api_secret: str
     api_passphrase: str
-    assets_prefix: str
-    expenses_prefix: str
-    payment_methods: Mapping[str, str]
-
 
 # --- dispatch ---
 

@@ -3,6 +3,7 @@ from typing import List
 
 from beancount.core.data import Transaction
 from pydantic.dataclasses import dataclass
+
 from bean_fetch.data import RawTx, VenueLike
 
 # --- config ---
