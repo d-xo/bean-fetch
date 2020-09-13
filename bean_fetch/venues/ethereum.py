@@ -6,6 +6,8 @@ from pydantic.dataclasses import dataclass
 
 from bean_fetch.data import RawTx, VenueLike
 
+import web3
+
 # --- config ---
 
 

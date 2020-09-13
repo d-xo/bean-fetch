@@ -28,7 +28,7 @@ coinbasepro:
   api_passphrase: # coinbase pro api passphrase (string)
 
 ethereum:
-  rpc_url:        # url to the rpc interface of an ethereum node (string)
+  graphql_url:    # url of a geth graphql endpoing (string)
 ```
 
 ## Architecture
