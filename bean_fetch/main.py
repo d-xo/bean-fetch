@@ -3,7 +3,7 @@ import hashlib
 import argparse
 from enum import Enum
 from pathlib import Path
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional
 
 import yaml
 import jsonpickle
@@ -29,18 +29,18 @@ args = parser.parse_args()
 @dataclass(frozen=True)
 class Config:
     archive_dir: Path
-    coinbase: cb.Config
-    coinbasepro: cbpro.Config
-    ethereum: eth.Config
+    coinbase: Optional[cb.Config]
+    coinbasepro: Optional[cbpro.Config]
+    ethereum: Optional[eth.Config]
 
 
 def load_config(path: Path) -> Config:
     config = yaml.load(path.read_text(), yaml.Loader)
     return Config(
         archive_dir=path.absolute().parent / config["archive_dir"],
-        coinbase=cb.Config(**config["coinbase"]),
-        coinbasepro=cbpro.Config(**config["coinbasepro"]),
-        ethereum=eth.Config(**config["ethereum"]),
+        coinbase=cb.Config(**config["coinbase"]) if "coinbase" in config else None,
+        coinbasepro=cbpro.Config(**config["coinbasepro"]) if "coinbasepro" in config else None,
+        ethereum=eth.Config(**config["ethereum"]) if "ethereum" in config else None,
     )
 
 
@@ -81,10 +81,15 @@ def main() -> None:
     config = load_config(Path(args.config))
 
     raw: List[RawTx[Any]] = []
-    # raw += cb.Venue.fetch(config.coinbase)
-    raw += cbpro.Venue.fetch(config.coinbasepro)
-    # raw += eth.Venue.fetch(config.ethereum)
+
+    if config.coinbase:
+        raw += cb.Venue.fetch(config.coinbase)
+    if config.coinbasepro:
+        raw += cbpro.Venue.fetch(config.coinbasepro)
+    if config.ethereum:
+        raw += eth.Venue.fetch(config.ethereum)
+
     print(raw)
 
-    # for tx in raw:
-    #     archive(config.archive_dir, tx)
+    for tx in raw:
+        archive(config.archive_dir, tx)
