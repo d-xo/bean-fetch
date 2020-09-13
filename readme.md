@@ -4,6 +4,8 @@
 transforms it into a single consistent beancount ledger (including prices / cost basis when
 required).
 
+`bean-fetch` is currently in development, and is not yet in a usable state.
+
 ## Usage
 
 1. Create a `config.yaml` file
