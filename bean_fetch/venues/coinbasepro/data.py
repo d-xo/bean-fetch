@@ -48,6 +48,7 @@ class Product:
     post_only: bool
     limit_only: bool
     cancel_only: bool
+    trading_disabled: bool
     accessible: bool = False
 
 
@@ -61,6 +62,7 @@ class Account:
     available: Decimal
     hold: Decimal
     profile_id: str
+    trading_enabled: bool
 
 
 @dataclass(frozen=True)

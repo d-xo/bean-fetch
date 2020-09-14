@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Mapping, Optional, List, TypeVar, Generic
 from abc import ABC
 
@@ -12,7 +13,7 @@ Kind = TypeVar("Kind")
 class RawTx(Generic[Kind]):
     venue: str
     kind: Kind
-    timestamp: str
+    timestamp: datetime
     raw: Json
     meta: Optional[Mapping[str, str]] = None
 

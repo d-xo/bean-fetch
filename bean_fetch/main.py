@@ -71,7 +71,7 @@ def soul(tx: RawTx[Enum]) -> str:
 def archive(path: Path, tx: RawTx[Enum]) -> None:
     """writes `tx` to `dir`. includes the sha256 hash of the contents in the filename"""
     path.mkdir(parents=True, exist_ok=True)
-    (path / f"{tx.venue}-{tx.kind}-{tx.timestamp}-{soul(tx)}.json").write_text(dump(tx))
+    (path / f"{tx.venue}-{tx.kind}-{tx.timestamp.timestamp()}-{soul(tx)}.json").write_text(dump(tx))
 
 
 # --- main ---
@@ -83,13 +83,19 @@ def main() -> None:
     raw: List[RawTx[Any]] = []
 
     if config.coinbase:
+        print("fetching data from coinbase")
         raw += cb.Venue.fetch(config.coinbase)
     if config.coinbasepro:
+        print("fetching data from coinbase pro")
         raw += cbpro.Venue.fetch(config.coinbasepro)
     if config.ethereum:
+        print("fetching data from ethereum")
         raw += eth.Venue.fetch(config.ethereum)
 
-    print(raw)
-
+    print("writing raw transaction data to archive")
     for tx in raw:
         archive(config.archive_dir, tx)
+
+
+if __name__ == "__main__":
+    main()

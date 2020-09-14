@@ -28,7 +28,17 @@ coinbasepro:
   api_passphrase: # coinbase pro api passphrase (string)
 
 ethereum:
-  graphql_url:    # url of a geth graphql endpoing (string)
+  rpc_url:        # url of a web3 rpc endpoint (string)
+```
+
+## Developing
+
+You can enter a development environment by running `nix-shell` from the project root.
+
+You can then run `bean-fetch` by running:
+
+```
+python -m bean_fetch.main -c ~/archive/beancount/config.yml
 ```
 
 ## Architecture
