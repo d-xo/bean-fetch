@@ -12,10 +12,10 @@ python = "^3.7"
 beancount = "^2.2"
 pyyaml = "^5.1"
 coinbase = "^2.1"
-jsonpickle = "^1.2"
 pydantic = "^0.27.0"
 requests = "^2.22"
 web3 = "^5.0"
+jsonpickle = "^1.4.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"

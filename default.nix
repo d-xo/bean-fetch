@@ -39,7 +39,7 @@ let
 in
 {
   app = poetry2nix.mkPoetryApplication poetryOpts;
-  shell = poetry2nix.mkPoetryEnv (poetryOpts // {
+  dev-env = poetry2nix.mkPoetryEnv (poetryOpts // {
     editablePackageSources = {
       bean-fetch = ./bean_fetch;
     };
