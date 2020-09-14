@@ -34,6 +34,9 @@ let
       multiaddr = super.multiaddr.overridePythonAttrs (old: {
         buildInputs = old.buildInputs ++ [ self.pytest-runner ];
       });
+      jsonpickle = super.jsonpickle.overridePythonAttrs (old: {
+        dontPreferSetupPy = true;
+      });
     });
   };
 in
