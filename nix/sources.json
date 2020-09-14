@@ -5,22 +5,22 @@
         "homepage": null,
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "252bfe0107587d40092057f338e9ffcf7bbd90cb",
-        "sha256": "1ljw98lcc04mlz6pprlgd1plinwl5q8fraakk6bx8igkiqlxaadn",
+        "rev": "ec0bf905199406f378971a5c2ef8068fc9ad0d6c",
+        "sha256": "0spj4v46602c7623kdq0kn1p91kv5qk70da7yi46z89fry37ccy3",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/252bfe0107587d40092057f338e9ffcf7bbd90cb.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/ec0bf905199406f378971a5c2ef8068fc9ad0d6c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "poetry2nix": {
-        "branch": "master",
+        "branch": "overrides",
         "description": "Convert poetry projects to nix automagically [maintainer=@adisbladis] ",
         "homepage": "",
-        "owner": "nix-community",
+        "owner": "xwvvvvwx",
         "repo": "poetry2nix",
-        "rev": "7232ecef8f3768cd700e58693274fb4b7db22a62",
-        "sha256": "0hb2mc81pkl8yc8wqdkyn3y5mc4lc6z48b66y4yq9gm94qpkc3y5",
+        "rev": "bcb1e06d7e8a21baa45f379d778115e117e39d7f",
+        "sha256": "1fc62x2inw5fxfsm0qgm5zv3l6m9ppmvpzb4lnafh79y96w2nm64",
         "type": "tarball",
-        "url": "https://github.com/nix-community/poetry2nix/archive/7232ecef8f3768cd700e58693274fb4b7db22a62.tar.gz",
+        "url": "https://github.com/xwvvvvwx/poetry2nix/archive/bcb1e06d7e8a21baa45f379d778115e117e39d7f.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
