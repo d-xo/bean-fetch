@@ -51,15 +51,6 @@ python -m bean_fetch.main -c ~/archive/beancount/config.yml
 The core data structure in `bean-fetch` is the `RawTx`. This is essentially a json blob with some
 metadata attached. This is the format in which data is persisted in the archive.
 
-```python
-class RawTx(Generic[Kind]):
-    venue: str
-    kind: Kind
-    timestamp: str
-    raw: Json
-    meta: Optional[Mapping[str, str]] = None
-```
-
 `bean-fetch` can fetch and process data from many locations. The logic related to each one of these
 locations is contained in a strcture called a `Venue`. A `Venue` must implement in the `VenueLike`
 interface defined in `data.py`. This consists of three methods:
