@@ -39,7 +39,9 @@ def load_config(path: Path) -> Config:
     return Config(
         archive_dir=path.absolute().parent / config["archive_dir"],
         coinbase=cb.Config(**config["coinbase"]) if "coinbase" in config else None,
-        coinbasepro=cbpro.Config(**config["coinbasepro"]) if "coinbasepro" in config else None,
+        coinbasepro=cbpro.Config(**config["coinbasepro"])
+        if "coinbasepro" in config
+        else None,
         ethereum=eth.Config(**config["ethereum"]) if "ethereum" in config else None,
     )
 
@@ -70,8 +72,9 @@ def soul(tx: RawTx[Enum]) -> str:
 
 def archive(path: Path, tx: RawTx[Enum]) -> None:
     """writes `tx` to `dir`. includes the sha256 hash of the contents in the filename"""
+    time = tx.timestamp.strftime("%Y-%m-%d_%H-%M-%S")
     path.mkdir(parents=True, exist_ok=True)
-    (path / f"{tx.venue}-{tx.kind}-{tx.timestamp.timestamp()}-{soul(tx)}.json").write_text(dump(tx))
+    (path / f"{tx.venue}-{tx.kind}-{time}-{soul(tx)}.json").write_text(dump(tx))
 
 
 # --- main ---
