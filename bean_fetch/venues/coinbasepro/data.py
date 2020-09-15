@@ -21,9 +21,9 @@ VENUE = "coinbasepro"
 
 
 class Kind(str, Enum):
-    FILL = "fill"
-    DEPOSIT = "deposit"
-    WITHDRAW = "withdraw"
+    FILL = "FILL"
+    DEPOSIT = "DEPOSIT"
+    WITHDRAW = "WITHDRAW"
 
 
 # --- api data ---

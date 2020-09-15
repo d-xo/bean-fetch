@@ -28,7 +28,7 @@ VENUE = "ethereum"
 
 
 class Kind(str, Enum):
-    TRANSACTION = "transaction"
+    TRANSACTION = "TRANSACTION"
 
 
 # --- venue ---
