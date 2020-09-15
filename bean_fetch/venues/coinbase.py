@@ -9,9 +9,7 @@ import coinbase.wallet.model as cb
 
 from bean_fetch.data import RawTx, VenueLike
 
-
 # --- constants ---
-
 
 VENUE = "coinbase"
 
@@ -47,11 +45,8 @@ class Venue(VenueLike[Config, Kind]):
         accounts = client.get_accounts().data
 
         return list(
-            Fetch.buys(accounts)
-            + Fetch.sells(accounts)
-            + Fetch.deposits(accounts)
-            + Fetch.withdrawals(accounts)
-        )
+            Fetch.buys(accounts) + Fetch.sells(accounts) +
+            Fetch.deposits(accounts) + Fetch.withdrawals(accounts))
 
     @staticmethod
     def handles(tx: Raw) -> bool:
@@ -93,18 +88,21 @@ class Fetch:
     def deposits(accounts: List[cb.Account]) -> List[Raw]:
         out: List[Raw] = []
         for acct in accounts:
-            out += Fetch.transform(acct.get_deposits().data, acct, Kind.DEPOSIT)
+            out += Fetch.transform(acct.get_deposits().data, acct,
+                                   Kind.DEPOSIT)
         return out
 
     @staticmethod
     def withdrawals(accounts: List[cb.Account]) -> List[Raw]:
         out: List[Raw] = []
         for acct in accounts:
-            out += Fetch.transform(acct.get_withdrawals().data, acct, Kind.WITHDRAWAL)
+            out += Fetch.transform(acct.get_withdrawals().data, acct,
+                                   Kind.WITHDRAWAL)
         return out
 
     @staticmethod
-    def transform(objs: List[cb.APIObject], acct: cb.Account, kind: Kind) -> List[Raw]:
+    def transform(objs: List[cb.APIObject], acct: cb.Account,
+                  kind: Kind) -> List[Raw]:
         txs = []
         for obj in objs:
             txs.append(
@@ -114,8 +112,7 @@ class Fetch:
                     timestamp=obj.created_at,
                     meta={"account_id": acct.id},
                     raw=jsonpickle.encode(obj, unpicklable=False),
-                )
-            )
+                ))
         return txs
 
 

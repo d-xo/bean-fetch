@@ -2,15 +2,14 @@ from datetime import datetime
 from enum import Enum
 from typing import List, Optional
 
+from beancount.core.data import Transaction
+from dataclasses_json import dataclass_json
+from eth_typing import ChecksumAddress
+from pydantic.dataclasses import dataclass
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-from eth_typing import ChecksumAddress
-from beancount.core.data import Transaction
-from pydantic.dataclasses import dataclass
-from dataclasses_json import dataclass_json
 
 from bean_fetch.data import RawTx, VenueLike
-
 
 # --- config ---
 
@@ -24,7 +23,6 @@ class Config:
 
 # --- dispatch ---
 
-
 VENUE = "ethereum"
 
 
@@ -33,7 +31,6 @@ class Kind(str, Enum):
 
 
 # --- venue ---
-
 
 Raw = RawTx[Kind]
 
@@ -51,48 +48,56 @@ class Venue(VenueLike[Config, Kind]):
         for i in range(config.start_block, blockheight + 1):
             block = web3.eth.getBlock(i, full_transactions=True)
             for tx in block.transactions:
-                if (tx["from"] in config.addresses) or (tx["to"] in config.addresses):
+                if (tx["from"] in config.addresses) or (tx["to"]
+                                                        in config.addresses):
                     receipt = web3.eth.getTransactionReceipt(tx.hash)
-                    transactions.append(EthTx(
-                        timestamp=datetime.utcfromtimestamp(block.timestamp),
-                        blockHash=tx.blockHash.hex(),
-                        blockNumber=tx.blockNumber,
-                        chainId=tx.chainId if "chainId" in tx else 1,
-                        data=tx.data if "data" in tx else None,
-                        sender=tx["from"],
-                        receiver=tx.to if tx.to else None,
-                        gas=tx.gas,
-                        gasPrice=tx.gasPrice,
-                        hash=tx.hash.hex(),
-                        input=tx.input,
-                        nonce=tx.nonce,
-                        value=tx.value,
-                        receipt=TxReceipt(
-                            contractAddress=receipt.contractAddress,
-                            cumulativeGasUsed=receipt.cumulativeGasUsed,
-                            gasUsed=receipt.gasUsed,
-                            logs=[LogReceipt(
-                                    address=log.address,
-                                    data=log.data,
-                                    logIndex=log.logIndex,
-                                    payload=log.payload.hex()if "payload" in log else None,
-                                    removed=log.removed,
-                                    topic=log.topic.hex() if "topic" in log else None,
-                                    topics=[t.hex() for t in log.topics],
-                                ) for log in receipt.logs],
-                            logsBloom=str(receipt.logsBloom),
-                            root=receipt.root.hex() if "root" in receipt else None,
-                            status=receipt.status,
-                        ),
-                    ))
+                    transactions.append(
+                        EthTx(
+                            timestamp=datetime.utcfromtimestamp(
+                                block.timestamp),
+                            blockHash=tx.blockHash.hex(),
+                            blockNumber=tx.blockNumber,
+                            chainId=tx.chainId if "chainId" in tx else 1,
+                            data=tx.data if "data" in tx else None,
+                            sender=tx["from"],
+                            receiver=tx.to if tx.to else None,
+                            gas=tx.gas,
+                            gasPrice=tx.gasPrice,
+                            hash=tx.hash.hex(),
+                            input=tx.input,
+                            nonce=tx.nonce,
+                            value=tx.value,
+                            receipt=TxReceipt(
+                                contractAddress=receipt.contractAddress,
+                                cumulativeGasUsed=receipt.cumulativeGasUsed,
+                                gasUsed=receipt.gasUsed,
+                                logs=[
+                                    LogReceipt(
+                                        address=log.address,
+                                        data=log.data,
+                                        logIndex=log.logIndex,
+                                        payload=log.payload.hex()
+                                        if "payload" in log else None,
+                                        removed=log.removed,
+                                        topic=log.topic.hex()
+                                        if "topic" in log else None,
+                                        topics=[t.hex() for t in log.topics],
+                                    ) for log in receipt.logs
+                                ],
+                                logsBloom=str(receipt.logsBloom),
+                                root=receipt.root.hex()
+                                if "root" in receipt else None,
+                                status=receipt.status,
+                            ),
+                        ))
 
-        return [RawTx(
-            venue=VENUE,
-            kind=Kind.TRANSACTION,
-            timestamp=t.timestamp,
-            raw=t.to_json(),
-            meta={}
-        ) for t in transactions]
+        return [
+            RawTx(venue=VENUE,
+                  kind=Kind.TRANSACTION,
+                  timestamp=t.timestamp,
+                  raw=t.to_json(),
+                  meta={}) for t in transactions
+        ]
 
     @staticmethod
     def handles(tx: Raw) -> bool:

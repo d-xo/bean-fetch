@@ -1,18 +1,17 @@
-from datetime import datetime
-import json
-import hashlib
 import argparse
+import hashlib
+import json
+from datetime import datetime
 from pathlib import Path
-from typing import List, Any, Optional
+from typing import Any, List, Optional
 
 import yaml
 from pydantic.dataclasses import dataclass
 
-from bean_fetch.data import RawTx, Kind
 import bean_fetch.venues.coinbase as cb
 import bean_fetch.venues.coinbasepro.venue as cbpro
 import bean_fetch.venues.ethereum as eth
-
+from bean_fetch.data import Kind, RawTx
 
 # --- constants ---
 
@@ -27,11 +26,14 @@ The following commands are available
    parse     Parse the raw data into a beancount ledger
 '''
 
-parser = argparse.ArgumentParser(description="Fully automated command line bookkeeping", usage=use)
-parser.add_argument("-c", "--config", required=True, help="configuration file path")
+parser = argparse.ArgumentParser(
+    description="Fully automated command line bookkeeping", usage=use)
+parser.add_argument("-c",
+                    "--config",
+                    required=True,
+                    help="configuration file path")
 parser.add_argument("command", help="command to run")
 args = parser.parse_args()
-
 
 # --- config ---
 
@@ -48,11 +50,12 @@ def load_config(path: Path) -> Config:
     config = yaml.load(path.read_text(), yaml.Loader)
     return Config(
         archive_dir=path.absolute().parent / config["archive_dir"],
-        coinbase=cb.Config(**config["coinbase"]) if "coinbase" in config else None,
-        coinbasepro=cbpro.Config(**config["coinbasepro"])
-        if "coinbasepro" in config
-        else None,
-        ethereum=eth.Config(**config["ethereum"]) if "ethereum" in config else None,
+        coinbase=cb.Config(
+            **config["coinbase"]) if "coinbase" in config else None,
+        coinbasepro=cbpro.Config(
+            **config["coinbasepro"]) if "coinbasepro" in config else None,
+        ethereum=eth.Config(
+            **config["ethereum"]) if "ethereum" in config else None,
     )
 
 
@@ -80,12 +83,10 @@ def deserialize(path: Path) -> RawTx[Kind]:
     else:
         raise ValueError(f"unknown venue: {j['venue']}")
 
-    return RawTx(
-        kind=j["kind"],
-        venue=j["venue"],
-        timestamp=datetime.utcfromtimestamp(j["timestamp"]),
-        raw=json.dumps(j["raw"])
-    )
+    return RawTx(kind=j["kind"],
+                 venue=j["venue"],
+                 timestamp=datetime.utcfromtimestamp(j["timestamp"]),
+                 raw=json.dumps(j["raw"]))
 
 
 # --- main ---
@@ -110,7 +111,9 @@ def fetch(config: Config) -> None:
 
 
 def parse(config: Config) -> None:
-    txs: List[RawTx[Any]] = [deserialize(p) for p in config.archive_dir.iterdir() if p.is_file()]
+    txs: List[RawTx[Any]] = [
+        deserialize(p) for p in config.archive_dir.iterdir() if p.is_file()
+    ]
 
     for tx in txs:
         if cb.Venue.handles(tx) and config.coinbase:

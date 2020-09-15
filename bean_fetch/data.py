@@ -7,7 +7,6 @@ from pydantic.dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from beancount.core.data import Transaction
 
-
 Config = TypeVar("Config")
 Kind = TypeVar("Kind")
 

@@ -15,27 +15,24 @@ class CBProAuth(AuthBase):
         self.secret_key = secret_key
         self.passphrase = passphrase
 
-    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+    def __call__(
+            self,
+            request: requests.PreparedRequest) -> requests.PreparedRequest:
         timestamp = str(time.time())
-        message = "".join(
-            [
-                timestamp,
-                (request.method or ""),
-                request.path_url,
-                (str(request.body) or ""),
-            ]
-        )
+        message = "".join([
+            timestamp,
+            (request.method or ""),
+            request.path_url,
+            (str(request.body) or ""),
+        ])
         request.headers.update(
-            get_auth_headers(
-                timestamp, message, self.api_key, self.secret_key, self.passphrase
-            )
-        )
+            get_auth_headers(timestamp, message, self.api_key, self.secret_key,
+                             self.passphrase))
         return request
 
 
-def get_auth_headers(
-    timestamp: str, message: str, api_key: str, secret_key: str, passphrase: str
-) -> Dict[str, Any]:
+def get_auth_headers(timestamp: str, message: str, api_key: str,
+                     secret_key: str, passphrase: str) -> Dict[str, Any]:
     encoded = message.encode("ascii")
     hmac_key = base64.b64decode(secret_key)
     signature = hmac.new(hmac_key, encoded, hashlib.sha256)
@@ -67,14 +64,13 @@ class Client:
     def get_accounts(self) -> Any:
         return self._send_message("get", "/accounts/")
 
-    def get_fills(
-        self,
-        product_id: Optional[str] = None,
-        order_id: Optional[str] = None,
-        **kwargs: Any
-    ) -> Any:
+    def get_fills(self,
+                  product_id: Optional[str] = None,
+                  order_id: Optional[str] = None,
+                  **kwargs: Any) -> Any:
         if (product_id is None) and (order_id is None):
-            raise ValueError("Either product_id or order_id must be specified.")
+            raise ValueError(
+                "Either product_id or order_id must be specified.")
 
         params = {}
         if product_id:
@@ -97,19 +93,27 @@ class Client:
         data: Optional[bytes] = None,
     ) -> Any:
         url = self.url + endpoint
-        r = self.session.request(
-            method, url, params=params, data=data, auth=self.auth, timeout=30
-        )
+        r = self.session.request(method,
+                                 url,
+                                 params=params,
+                                 data=data,
+                                 auth=self.auth,
+                                 timeout=30)
         return r.json()
 
     def _send_paginated_message(
-        self, endpoint: str, params: Optional[Dict[Any, Any]] = None
-    ) -> Generator[Any, None, None]:
+            self,
+            endpoint: str,
+            params: Optional[Dict[Any,
+                                  Any]] = None) -> Generator[Any, None, None]:
         if params is None:
             params = dict()
         url = self.url + endpoint
         while True:
-            r = self.session.get(url, params=params, auth=self.auth, timeout=30)
+            r = self.session.get(url,
+                                 params=params,
+                                 auth=self.auth,
+                                 timeout=30)
             results = r.json()
             for result in results:
                 yield result
@@ -117,7 +121,8 @@ class Client:
             # param to get next page.
             # If this request included `before` don't get any more pages - the
             # cbpro API doesn't support multiple pages in that case.
-            if not r.headers.get("cb-after") or params.get("before") is not None:
+            if not r.headers.get("cb-after") or params.get(
+                    "before") is not None:
                 break
             else:
                 params["after"] = r.headers["cb-after"]

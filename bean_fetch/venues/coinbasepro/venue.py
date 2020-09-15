@@ -9,17 +9,18 @@ from .client import Client
 
 # --- venue ---
 
-
 Raw = RawTx[Kind]
 
 
 class Venue(VenueLike[Config, Kind]):
     @staticmethod
     def fetch(config: Config) -> List[Raw]:
-        client = Client(config.api_key, config.api_secret, config.api_passphrase)
+        client = Client(config.api_key, config.api_secret,
+                        config.api_passphrase)
         products = [Product(**p) for p in client.get_products()]
         accounts = [Account(**a) for a in client.get_accounts()]
-        return Fetch.fills(client, products) + Fetch.transfers(client, accounts)
+        return Fetch.fills(client, products) + Fetch.transfers(
+            client, accounts)
 
     @staticmethod
     def handles(tx: Raw) -> bool:
@@ -46,8 +47,7 @@ class Fetch:
                     timestamp=f.created_at,
                     raw=jsonpickle.encode(f, unpicklable=False),
                     meta=None,
-                )
-                for f in fs
+                ) for f in fs
             ]
         return out
 
@@ -56,7 +56,8 @@ class Fetch:
         out: List[Raw] = []
         for a in accounts:
             transfers = [
-                x for x in c.get_account_history(a.id) if x["type"] == "transfer"
+                x for x in c.get_account_history(a.id)
+                if x["type"] == "transfer"
             ]
             out += [
                 Raw(
@@ -64,8 +65,10 @@ class Fetch:
                     kind=Kind(t["details"]["transfer_type"]),
                     timestamp=t["created_at"],
                     raw=jsonpickle.encode(t, unpicklable=False),
-                    meta={"account_id": a.id, "currency": a.currency},
-                )
-                for t in transfers
+                    meta={
+                        "account_id": a.id,
+                        "currency": a.currency
+                    },
+                ) for t in transfers
             ]
         return out
