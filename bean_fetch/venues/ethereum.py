@@ -48,13 +48,11 @@ class Venue(VenueLike[Config, Kind]):
         for i in range(config.start_block, blockheight + 1):
             block = web3.eth.getBlock(i, full_transactions=True)
             for tx in block.transactions:
-                if (tx["from"] in config.addresses) or (tx["to"]
-                                                        in config.addresses):
+                if (tx["from"] in config.addresses) or (tx["to"] in config.addresses):
                     receipt = web3.eth.getTransactionReceipt(tx.hash)
                     transactions.append(
                         EthTx(
-                            timestamp=datetime.utcfromtimestamp(
-                                block.timestamp),
+                            timestamp=datetime.utcfromtimestamp(block.timestamp),
                             blockHash=tx.blockHash.hex(),
                             blockNumber=tx.blockNumber,
                             chainId=tx.chainId if "chainId" in tx else 1,
@@ -76,17 +74,14 @@ class Venue(VenueLike[Config, Kind]):
                                         address=log.address,
                                         data=log.data,
                                         logIndex=log.logIndex,
-                                        payload=log.payload.hex()
-                                        if "payload" in log else None,
+                                        payload=log.payload.hex() if "payload" in log else None,
                                         removed=log.removed,
-                                        topic=log.topic.hex()
-                                        if "topic" in log else None,
+                                        topic=log.topic.hex() if "topic" in log else None,
                                         topics=[t.hex() for t in log.topics],
                                     ) for log in receipt.logs
                                 ],
                                 logsBloom=str(receipt.logsBloom),
-                                root=receipt.root.hex()
-                                if "root" in receipt else None,
+                                root=receipt.root.hex() if "root" in receipt else None,
                                 status=receipt.status,
                             ),
                         ))
