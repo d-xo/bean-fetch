@@ -47,7 +47,7 @@ class Venue(VenueLike[Config, Kind]):
         blockheight = web3.eth.getBlock('latest').number
 
         transactions = []
-        for i in range(config.start_block, blockheight):
+        for i in range(config.start_block, blockheight + 1):
             txs = web3.eth.getBlock(i, full_transactions=True).transactions
             for tx in txs:
                 if (tx["from"] in config.addresses) or (tx["to"] in config.addresses):
