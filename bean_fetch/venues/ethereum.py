@@ -57,7 +57,7 @@ class Venue(VenueLike[Config, Kind]):
                     transactions.append((tx, txHash, timestamp))
 
         return [RawTx(
-            venue="Ethereum",
+            venue=VENUE,
             kind=Kind.TRANSACTION,
             timestamp=datetime.utcfromtimestamp(timestamp),
             raw=jsonpickle.encode(tx),
