@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import hashlib
 import argparse
@@ -15,11 +16,22 @@ import bean_fetch.venues.coinbasepro.venue as cbpro
 import bean_fetch.venues.ethereum as eth
 
 
+# --- constants ---
+
+TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
+
 # --- cli ---
 
+use = '''bean-fetch -c <CONFIG> <command>
 
-parser = argparse.ArgumentParser(description="Fully automated command line bookkeeping")
+The following commands are available
+   fetch     Fetch raw transaction data from the outside world and persist it to disk
+   parse     Parse the raw data into a beancount ledger
+'''
+
+parser = argparse.ArgumentParser(description="Fully automated command line bookkeeping", usage=use)
 parser.add_argument("-c", "--config", required=True, help="configuration file path")
+parser.add_argument("command", help="command to run")
 args = parser.parse_args()
 
 
@@ -62,6 +74,7 @@ def dump(tx: RawTx[Enum]) -> str:
     """returns a pretty printed json representation of `tx`"""
     obj = json.loads(jsonpickle.encode(tx, unpicklable=False))
     obj["kind"] = tx.kind._name_
+    obj["timestamp"] = tx.timestamp.strftime(TIME_FORMAT)
     return json.dumps(clean(obj), indent=4, ensure_ascii=False, sort_keys=True)
 
 
@@ -80,9 +93,7 @@ def archive(path: Path, tx: RawTx[Enum]) -> None:
 # --- main ---
 
 
-def main() -> None:
-    config = load_config(Path(args.config))
-
+def fetch(config: Config) -> None:
     raw: List[RawTx[Any]] = []
 
     if config.coinbase:
@@ -98,6 +109,45 @@ def main() -> None:
     print("writing raw transaction data to archive")
     for tx in raw:
         archive(config.archive_dir, tx)
+
+
+def parse(config: Config) -> None:
+    def mkRaw(j: Dict) -> RawTx:
+        if j["venue"] == cb.VENUE:
+            j["kind"] = cb.Kind(j["kind"])
+        elif j["venue"] == cbpro.VENUE:
+            j["kind"] = cbpro.Kind(j["kind"])
+        elif j["venue"] == eth.VENUE:
+            j["kind"] = eth.Kind(j["kind"])
+        else:
+            raise ValueError(f'unknown venue: {j["venue"]}')
+
+        return RawTx(
+            kind=j["kind"],
+            venue=j["venue"],
+            timestamp=datetime.strptime(j["timestamp"], TIME_FORMAT),
+            raw=json.dumps(j["raw"])
+        )
+    raw = [mkRaw(json.loads(p.read_text())) for p in config.archive_dir.iterdir() if p.is_file()]
+
+    for tx in raw:
+        if cb.Venue.handles(tx):
+            cb.Venue.parse(config.coinbase, tx)
+        if cbpro.Venue.handles(tx):
+            cbpro.Venue.parse(config.coinbasepro, tx)
+        elif eth.Venue.handles(tx):
+            eth.Venue.parse(config.ethereum, tx)
+        else:
+            raise ValueError(f"unable to parse tx:\n {tx}")
+
+
+def main() -> None:
+    config = load_config(Path(args.config))
+
+    if args.command == "fetch":
+        fetch(config)
+    elif args.command == "parse":
+        parse(config)
 
 
 if __name__ == "__main__":
