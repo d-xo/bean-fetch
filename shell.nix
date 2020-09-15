@@ -6,6 +6,5 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     niv
     devEnv
-    python3Packages.black
   ];
 }

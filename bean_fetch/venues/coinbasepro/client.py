@@ -3,12 +3,9 @@ import hashlib
 import time
 import requests
 import base64
-import json
-from typing import Dict, Mapping, Any, List, Optional, Generator
+from typing import Dict, Any, Optional, Generator
 
 from requests.auth import AuthBase
-
-from .data import Product
 
 
 class CBProAuth(AuthBase):
@@ -21,11 +18,11 @@ class CBProAuth(AuthBase):
     def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
         timestamp = str(time.time())
         message = "".join(
-            [  # type: ignore
+            [
                 timestamp,
                 (request.method or ""),
                 request.path_url,
-                (request.body or ""),
+                (str(request.body) or ""),
             ]
         )
         request.headers.update(

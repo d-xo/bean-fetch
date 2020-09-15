@@ -2,15 +2,13 @@ from datetime import datetime
 import json
 import hashlib
 import argparse
-from enum import Enum
 from pathlib import Path
-from typing import List, Any, Dict, Optional
+from typing import List, Any, Optional
 
 import yaml
-import jsonpickle
 from pydantic.dataclasses import dataclass
-from bean_fetch.data import RawTx
 
+from bean_fetch.data import RawTx, Kind
 import bean_fetch.venues.coinbase as cb
 import bean_fetch.venues.coinbasepro.venue as cbpro
 import bean_fetch.venues.ethereum as eth
@@ -61,33 +59,33 @@ def load_config(path: Path) -> Config:
 # --- archive ---
 
 
-def clean(d: Dict[str, Any]) -> Dict[str, Any]:
-    """returns a copy of `d` with all dunder keys removed"""
-    return {
-        k: clean(v) if isinstance(v, Dict) else v
-        for k, v in d.items()
-        if not k.startswith("__")
-    }
-
-
-def dump(tx: RawTx[Enum]) -> str:
-    """returns a pretty printed json representation of `tx`"""
-    obj = json.loads(jsonpickle.encode(tx, unpicklable=False))
-    obj["kind"] = tx.kind._name_
-    obj["timestamp"] = tx.timestamp.strftime(TIME_FORMAT)
-    return json.dumps(clean(obj), indent=4, ensure_ascii=False, sort_keys=True)
-
-
-def soul(tx: RawTx[Enum]) -> str:
-    """returns the sha256 hash of the serialized representation of `tx`"""
-    return hashlib.sha256(dump(tx).encode("utf-8")).hexdigest()
-
-
-def archive(path: Path, tx: RawTx[Enum]) -> None:
+def serialize(path: Path, tx: RawTx[Kind]) -> None:
     """writes `tx` to `dir`. includes the sha256 hash of the contents in the filename"""
     time = tx.timestamp.strftime("%Y-%m-%d_%H-%M-%S")
+    hash = hashlib.sha256(tx.to_json().encode('UTF-8')).hexdigest()
+    out = tx.to_json(indent=4)
     path.mkdir(parents=True, exist_ok=True)
-    (path / f"{tx.venue}-{tx.kind}-{time}-{soul(tx)}.json").write_text(dump(tx))
+    (path / f"{tx.venue}-{tx.kind}-{time}-{hash}.json").write_text(out)
+
+
+def deserialize(path: Path) -> RawTx[Kind]:
+    j = json.loads(path.read_text())
+
+    if j["venue"] == cb.VENUE:
+        j["kind"] = cb.Kind(j["kind"])
+    elif j["venue"] == cbpro.VENUE:
+        j["kind"] = cbpro.Kind(j["kind"])
+    elif j["venue"] == eth.VENUE:
+        j["kind"] = eth.Kind(j["kind"])
+    else:
+        raise ValueError(f"unknown venue: {j['venue']}")
+
+    return RawTx(
+        kind=j["kind"],
+        venue=j["venue"],
+        timestamp=datetime.utcfromtimestamp(j["timestamp"]),
+        raw=json.dumps(j["raw"])
+    )
 
 
 # --- main ---
@@ -108,34 +106,18 @@ def fetch(config: Config) -> None:
 
     print("writing raw transaction data to archive")
     for tx in raw:
-        archive(config.archive_dir, tx)
+        serialize(config.archive_dir, tx)
 
 
 def parse(config: Config) -> None:
-    def mkRaw(j: Dict) -> RawTx:
-        if j["venue"] == cb.VENUE:
-            j["kind"] = cb.Kind(j["kind"])
-        elif j["venue"] == cbpro.VENUE:
-            j["kind"] = cbpro.Kind(j["kind"])
-        elif j["venue"] == eth.VENUE:
-            j["kind"] = eth.Kind(j["kind"])
-        else:
-            raise ValueError(f'unknown venue: {j["venue"]}')
+    txs: List[RawTx[Any]] = [deserialize(p) for p in config.archive_dir.iterdir() if p.is_file()]
 
-        return RawTx(
-            kind=j["kind"],
-            venue=j["venue"],
-            timestamp=datetime.strptime(j["timestamp"], TIME_FORMAT),
-            raw=json.dumps(j["raw"])
-        )
-    raw = [mkRaw(json.loads(p.read_text())) for p in config.archive_dir.iterdir() if p.is_file()]
-
-    for tx in raw:
-        if cb.Venue.handles(tx):
+    for tx in txs:
+        if cb.Venue.handles(tx) and config.coinbase:
             cb.Venue.parse(config.coinbase, tx)
-        if cbpro.Venue.handles(tx):
+        elif cbpro.Venue.handles(tx) and config.coinbasepro:
             cbpro.Venue.parse(config.coinbasepro, tx)
-        elif eth.Venue.handles(tx):
+        elif eth.Venue.handles(tx) and config.ethereum:
             eth.Venue.parse(config.ethereum, tx)
         else:
             raise ValueError(f"unable to parse tx:\n {tx}")

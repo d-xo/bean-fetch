@@ -1,6 +1,6 @@
-import jsonpickle
 from typing import List
 
+import jsonpickle
 from beancount.core.data import Transaction
 
 from bean_fetch.data import RawTx, VenueLike
@@ -43,7 +43,7 @@ class Fetch:
                 Raw(
                     venue=VENUE,
                     kind=Kind.FILL,
-                    timestamp=str(f.created_at),
+                    timestamp=f.created_at,
                     raw=jsonpickle.encode(f, unpicklable=False),
                     meta=None,
                 )

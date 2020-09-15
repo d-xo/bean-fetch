@@ -4,11 +4,15 @@ from abc import ABC
 
 from pydantic import Json
 from pydantic.dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from beancount.core.data import Transaction
 
+
+Config = TypeVar("Config")
 Kind = TypeVar("Kind")
 
 
+@dataclass_json
 @dataclass(frozen=True)
 class RawTx(Generic[Kind]):
     venue: str
@@ -16,9 +20,6 @@ class RawTx(Generic[Kind]):
     timestamp: datetime
     raw: Json
     meta: Optional[Mapping[str, str]] = None
-
-
-Config = TypeVar("Config")
 
 
 class VenueLike(Generic[Config, Kind], ABC):

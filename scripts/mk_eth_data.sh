@@ -2,23 +2,56 @@
 
 set -euo pipefail
 
+# --- Constants ---
+
+
 SEP="---------------------------------------------------------------------"
 MAX_UINT=$(seth --to-int256 -1)
 
-# clean up
-trap 'killall geth && rm -rf "$TMPDIR"' EXIT
-trap "exit 1" SIGINT SIGTERM
 
-TMPDIR=$(mktemp -d)
-dapp testnet --dir "$TMPDIR" &
-sleep 10
+# --- Options ---
+
+
+while getopts "es:" opt; do
+  case ${opt} in
+    s )
+      export STATEDIR=$OPTARG
+      ;;
+    e )
+      export USE_EXTERNAL_GETH=1
+      ;;
+    \? ) echo "Usage: cmd [-s]"
+      ;;
+  esac
+done
+
+
+# --- Start Chain ---
+
 
 export ETH_RPC_URL="http://127.0.0.1:8545"
 export ETH_GAS=9999999999
 export ETH_RPC_ACCOUNTS=1
 
-read -r ACC _ <<< "$(seth ls --keystore "$TMPDIR/.dapp/testnet/8545/keystore")"
+TMPDIR=$(mktemp -d)
+GETHDIR=${STATEDIR:-:"$TMPDIR/.dapp/testnet/8545"}
+
+if [ -z ${USE_EXTERNAL_GETH+x} ]; then
+    # clean up
+    trap 'killall geth && rm -rf "$TMPDIR"' EXIT
+    trap "exit 1" SIGINT SIGTERM
+
+    TMPDIR=$(mktemp -d)
+    dapp testnet --dir "$TMPDIR" &
+    sleep 10
+fi
+
+read -r ACC _ <<< "$(seth ls --keystore "$GETHDIR/keystore")"
 export ETH_FROM=$ACC
+
+
+# --- Send Transactions ---
+
 
 function sendEth() {
     local to=$1
@@ -141,9 +174,11 @@ msg removing some liquidity from the weth pair
 shares=$(seth call "$wethPair" "balanceOf(address)(uint)" "$ETH_FROM")
 seth send "$router" "removeLiquidityETH(address,uint,uint,uint,address,uint)" "$token1" "$shares" 0 0 "$ETH_FROM" "$MAX_UINT"
 
-msg running bean-fetch
 beanDir=$(mktemp -d)
 config="$beanDir/config.yml"
+
+msg running bean-fetch with "$config"
+
 cat > "$config" <<EOL
 archive_dir: ./archive
 
